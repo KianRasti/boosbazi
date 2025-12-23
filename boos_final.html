@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Rooftop Story</title>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lalezar&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           GLOBAL STYLES
+           ========================================= */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+        }
+
+        .center-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; 
+        }
+
+        .center-screen > * {
+            pointer-events: auto;
+        }
+
+        .hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            display: none !important; 
+        }
+
+        /* Canvas */
+        #canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; 
+        }
+
+        /* =========================================
+           SCENE 1: INTRO
+           ========================================= */
+        #scene-intro {
+            z-index: 20;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            transition: opacity 1s ease;
+        }
+
+        .intro-text {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 0 0 10px #ff99cc;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+
+        /* =========================================
+           SCENE 2: ROOFTOP
+           ========================================= */
+        #scene-rooftop {
+            background: radial-gradient(circle at bottom, #2b32b2 0%, #1488cc 20%, #000000 80%);
+            z-index: 15;
+            transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 1s ease;
+            transform-origin: center 65%;
+        }
+
+        .moon {
+            position: absolute;
+            top: 10%;
+            right: 15%;
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #fff, 0 0 80px #ffd700;
+            opacity: 0.9;
+        }
+
+        .rooftop-floor {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15vh;
+            background: linear-gradient(to bottom, #111, #000);
+            box-shadow: 0 -5px 30px rgba(0,0,0,1);
+            z-index: 2;
+        }
+
+        .character-container {
+            position: absolute;
+            bottom: 14vh; 
+            display: flex;
+            align-items: flex-end;
+            z-index: 3;
+            transition: all 2s ease-in-out; 
+        }
+
+        .character {
+            width: 120px; 
+            height: 120px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .label {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+        }
+
+        .character img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+
+        #batman-wrapper { left: -200px; }
+        #catwoman-wrapper { right: -200px; }
+
+        .batman-enter { animation: slideInLeft 3s ease-out forwards; }
+        .catwoman-enter { animation: slideInRight 3s ease-out forwards; }
+
+        .face-each-other #batman-wrapper {
+            left: 35% !important;
+            transform: scale(1.1); 
+        }
+        
+        .face-each-other #catwoman-wrapper {
+            right: 35% !important;
+            transform: scale(1.1);
+        }
+
+        @keyframes slideInLeft { 0% { left: -200px; } 100% { left: 15%; } }
+        @keyframes slideInRight { 0% { right: -200px; } 100% { right: 15%; } }
+
+        /* =========================================
+           SCENE 3: QUESTION
+           ========================================= */
+        #scene-question { z-index: 30; }
+
+        #couple-photo-overlay {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.8);
+            overflow: hidden;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 1.5s ease;
+        }
+        
+        #couple-photo-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .question-text {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 5px #000;
+        }
+
+        .btn-group { display: flex; gap: 30px; }
+
+        .custom-btn {
+            padding: 12px 40px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+
+        .btn-yes {
+            background: linear-gradient(45deg, #ff0066, #ffcc00);
+            color: white;
+            box-shadow: 0 0 15px #ff0066;
+        }
+        
+        .btn-no {
+            background: linear-gradient(45deg, #434343, #000000);
+            color: #ccc;
+            border: 1px solid #555;
+        }
+
+        .custom-btn:hover { transform: scale(1.15); }
+
+        /* =========================================
+           SCENE 4: EXPLOSION (NO)
+           ========================================= */
+        #scene-explosion {
+            background: radial-gradient(circle, #3a0000 0%, #1a0000 100%);
+            z-index: 40;
+            text-align: center;
+        }
+
+        .shake-bg {
+            animation: mildShake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes mildShake {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            25% { transform: translate3d(-3px, 1px, 0); }
+            50% { transform: translate3d(3px, -2px, 0); }
+            75% { transform: translate3d(-2px, -1px, 0); }
+        }
+
+        .explosion-container {
+            position: relative;
+            z-index: 42;
+        }
+
+        .explosion-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            color: #ff3333;
+            text-shadow: 0 0 20px red;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #explosion-img {
+            border-radius:15px; 
+            border: 2px solid red; 
+            box-shadow: 0 0 20px red;
+            width: 320px;
+            height: auto;
+        }
+
+        .persian-text {
+            font-family: 'Lalezar', cursive;
+            direction: rtl;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-top: 25px;
+            text-shadow: 0 0 10px #ff8c00;
+            line-height: 1.4;
+        }
+
+        .btn-persian {
+            font-family: 'Lalezar', cursive;
+            background: #ffae00;
+            color: #000;
+            font-size: 1.8rem;
+            margin-top: 20px;
+            padding: 10px 40px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ffae00;
+        }
+
+        .btn-persian:hover { transform: scale(1.1); }
+
+        /* =========================================
+           SCENE 5: YES (VIDEO SEQUENCE)
+           ========================================= */
+        #scene-yes {
+            background: rgba(20, 0, 10, 0.5); 
+            z-index: 50;
+        }
+
+        /* Rectangular Container for MP4 */
+        .video-wrapper {
+            width: 90%;
+            max-width: 800px;
+            border: 4px solid #ff1493; /* Pink Border */
+            box-shadow: 0 0 40px #ff1493;
+            border-radius: 10px;
+            overflow: hidden;
+            background: black;
+            margin-bottom: 20px;
+            animation: fadeInVideo 2s ease;
+        }
+
+        @keyframes fadeInVideo {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        #kiss-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .final-msg-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            z-index: 60;
+        }
+
+        .final-msg {
+            font-family: 'Lalezar', cursive;
+            font-size: 3.5rem;
+            color: #fff;
+            text-shadow: 0 0 15px #ff00ff, 0 0 30px #0000ff;
+            text-align: center;
+        }
+
+        .btn-restart {
+            font-family: 'Lalezar', cursive;
+            background: #ff007f;
+            color: #fff;
+            font-size: 1.5rem;
+            margin-top: 15px;
+            padding: 8px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff007f;
+        }
+        .btn-restart:hover {
+            transform: scale(1.1);
+            background: #ff3399;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-layer"></canvas>
+
+    <!-- AUDIO FILES -->
+    <!-- TODO: Update these paths with your real audio files -->
+    <audio id="audio-bg" loop><source src="theme.mp3" type="audio/mpeg"></audio>
+    <audio id="audio-explode"><source src="./Matt Maltese As the World Caves In (mp3cut.net).mp3" type="audio/mpeg"></audio>
+    <audio id="audio-success"><source src="./2_5215365339990209848.mp3" type="audio/mpeg"></audio>
+
+    <!-- SCENE 1: Intro -->
+    <div id="scene-intro" class="center-screen">
+        <div class="intro-text">Click to start our story...</div>
+    </div>
+
+    <!-- SCENE 2: Rooftop -->
+    <div id="scene-rooftop" class="center-screen hidden">
+        <div class="moon"></div>
+        <div class="rooftop-floor"></div>
+
+        <div id="batman-wrapper" class="character-container">
+            <div class="character">
+                <div class="label">Me</div>
+                <!-- TODO: Batman Image -->
+                <img src="https://img.icons8.com/color/144/batman.png" alt="Batman">
+            </div>
+        </div>
+
+        <div id="catwoman-wrapper" class="character-container">
+            <div class="character">
+                <div class="label">You</div>
+                <!-- TODO: Catwoman Image -->
+                <img src="https://img.icons8.com/color/144/catwoman.png" alt="Catwoman">
+            </div>
+        </div>
+    </div>
+
+    <!-- SCENE 3: Question -->
+    <div id="scene-question" class="center-screen hidden">
+        <div id="couple-photo-overlay">
+            <!-- TODO: Custom Photo -->
+            <img src="https://via.placeholder.com/300x300.png?text=Us+Two" alt="Us">
+        </div>
+        <div class="question-text">Should we kiss?</div>
+        <div class="btn-group">
+            <button class="custom-btn btn-no" onclick="triggerNo()">No</button>
+            <button class="custom-btn btn-yes" onclick="triggerYes()">Yes</button>
+        </div>
+    </div>
+
+    <!-- SCENE 4: Explosion (No) -->
+    <div id="scene-explosion" class="center-screen hidden">
+        <div class="explosion-container">
+            <div class="explosion-text">The world if we don't kiss...</div>
+            
+            <!-- Default Explosion GIF -->
+            <img id="explosion-img" src="https://media.giphy.com/media/oe33xf3B50fsc/giphy.gif" alt="Boom">
+
+            <div id="persian-fail-msg" class="persian-text hidden">
+                من که بوست میکنم فکر کردی دست خودته بچه؟
+            </div>
+
+            <button id="btn-retry" class="btn-persian hidden" onclick="triggerRetry()">
+                بیا بوس کنیم
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 5: Celebration (Yes - Local Video) -->
+    <div id="scene-yes" class="center-screen hidden">
+        
+        <div class="video-wrapper">
+            <!-- TODO: PLACE YOUR LOCAL MP4 FILE HERE -->
+            <!-- Example: src="kiss.mp4" -->
+            <video id="kiss-video" loop playsinline muted>
+                <source src="./kiss_vid.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        
+        <div class="final-msg-container">
+            <div class="final-msg">بوس بهت خوشکله</div>
+            <!-- Kiss Again Button -->
+            <button class="btn-restart" onclick="restartKissing()">دوباره بوس</button>
+        </div>
+    </div>
+
+    <script>
+    /* =========================================
+       STATE MANAGEMENT
+       ========================================= */
+    // CHANGED: Use a simple variable instead of localStorage.
+    // This fixes the issue where reloading the page keeps you stuck in the redirect loop.
+    let kissCount = 0; 
+    console.log("Current Kiss Count:", kissCount);
+
+    // Timer variable to clear timeouts if button is clicked quickly
+    let messageTimer = null;
+
+    /* =========================================
+       CANVAS EFFECT ENGINE
+       ========================================= */
+    const canvas = document.getElementById('canvas-layer');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let effectMode = 'fireworks'; 
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createParticle(x, y, type) {
+        const particleCount = type === 'explosion' ? 2 : 1; 
+        for(let i=0; i<particleCount; i++){
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            let color;
+            if(type === 'fireworks') {
+                const hue = Math.floor(Math.random() * 360);
+                color = `hsl(${hue}, 100%, 60%)`;
+            } else if (type === 'explosion') {
+                const hue = Math.floor(Math.random() * 40) + 0; 
+                color = `hsl(${hue}, 100%, 50%)`;
+            }
+            particles.push({
+                x: x, y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 100 + Math.random() * 50,
+                alpha: 1, color: color, type: type,
+                gravity: type === 'fireworks' ? 0.05 : 0
+            });
+        }
+    }
+
+    function animate() {
+        ctx.fillStyle = effectMode === 'explosion' ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.life--;
+            p.alpha -= 0.01;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            if (p.life <= 0 || p.alpha <= 0) {
+                particles.splice(i, 1);
+                continue;
+            }
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.type === 'explosion' ? Math.random()*4 : 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    let effectInterval;
+    function startEffects(mode) {
+        effectMode = mode;
+        clearInterval(effectInterval);
+        if (mode === 'fireworks') {
+            effectInterval = setInterval(() => {
+                createParticle(Math.random() * canvas.width, Math.random() * canvas.height, 'fireworks');
+                for(let i=0; i<20; i++) createParticle(Math.random() * canvas.width, Math.random() * canvas.height, 'fireworks');
+            }, 800);
+        } else if (mode === 'intense-fireworks') {
+            effectMode = 'fireworks';
+            effectInterval = setInterval(() => {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                for(let i=0; i<40; i++) createParticle(x, y, 'fireworks');
+            }, 300);
+        } else if (mode === 'explosion') {
+            effectInterval = setInterval(() => {
+                const x = canvas.width / 2 + (Math.random()-0.5)*100;
+                const y = canvas.height / 2 + (Math.random()-0.5)*100;
+                for(let i=0; i<50; i++) createParticle(x, y, 'explosion');
+            }, 100);
+        }
+    }
+    startEffects('fireworks');
+
+    /* =========================================
+       SCENE CONTROLLERS
+       ========================================= */
+
+    const sceneIntro = document.getElementById('scene-intro');
+    const sceneRooftop = document.getElementById('scene-rooftop');
+    const sceneQuestion = document.getElementById('scene-question');
+    const sceneExplosion = document.getElementById('scene-explosion');
+    const sceneYes = document.getElementById('scene-yes');
+
+    const audioBg = document.getElementById('audio-bg');
+    const audioExplode = document.getElementById('audio-explode');
+    const audioSuccess = document.getElementById('audio-success');
+
+    sceneIntro.addEventListener('click', () => {
+        sceneIntro.classList.add('hidden');
+        clearInterval(effectInterval); 
+        sceneRooftop.classList.remove('hidden');
+        if(audioBg) { audioBg.volume = 0.5; audioBg.play().catch(e=>console.log(e)); }
+
+        document.getElementById('batman-wrapper').classList.add('batman-enter');
+        setTimeout(() => {
+            document.getElementById('catwoman-wrapper').classList.add('catwoman-enter');
+        }, 3000); 
+
+        setTimeout(() => {
+            sceneRooftop.classList.add('face-each-other');
+            setTimeout(() => {
+                sceneRooftop.style.transform = "scale(3)"; 
+                setTimeout(() => {
+                    sceneQuestion.classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('couple-photo-overlay').style.opacity = '1';
+                        document.getElementById('couple-photo-overlay').style.transform = 'scale(1)';
+                    }, 100);
+                }, 2000);
+            }, 2000);
+        }, 6500); 
+    });
+
+    function triggerNo() {
+        sceneQuestion.classList.add('hidden');
+        sceneRooftop.classList.add('hidden'); 
+        sceneExplosion.classList.remove('hidden');
+        document.body.classList.add('shake-bg');
+        startEffects('explosion');
+
+        if(audioBg) audioBg.pause();
+        if(audioExplode) audioExplode.play().catch(e=>console.log(e));
+
+        // Reset Image to initial explosion
+        const img = document.getElementById('explosion-img');
+        img.src = "https://media.giphy.com/media/oe33xf3B50fsc/giphy.gif";
+
+        // 1. After 3 Seconds, switch to NUCLEAR GIF
+        setTimeout(() => {
+            img.src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGdweG1yODRjaGN3aWJlZHMzbG4xZjZ6OTVwYmgzNWsybTh6eXZ0ayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/one2t6IVCI8RG/giphy.gif";
+        }, 3000);
+
+        // 2. After 8 Seconds (Total), show Persian Msg & Buttons
+        setTimeout(() => {
+            document.getElementById('persian-fail-msg').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('btn-retry').classList.remove('hidden');
+            }, 1000);
+        }, 8000); 
+    }
+
+    function triggerRetry() {
+        document.body.classList.remove('shake-bg');
+        triggerYes();
+    }
+
+    function triggerYes() {
+        // Safe check in case triggerYes is called directly when count is high
+        if (kissCount >= 3) {
+            window.location.href = "https://youtu.be/rxJaxagZMXk?si=xSRXe3JsjCQQ2inR"; 
+            return;
+        }
+
+        // Normal Yes Flow
+        sceneIntro.classList.add('hidden');
+        sceneRooftop.classList.add('hidden');
+        sceneQuestion.classList.add('hidden');
+        sceneExplosion.classList.add('hidden');
+        document.body.classList.remove('shake-bg');
+
+        sceneYes.classList.remove('hidden');
+        startEffects('intense-fireworks');
+        
+        if(audioBg) audioBg.pause();
+        if(audioExplode) { audioExplode.pause(); audioExplode.currentTime = 0; }
+        if(audioSuccess) audioSuccess.play().catch(e=>console.log(e));
+
+        // PLAY VIDEO
+        const vid = document.getElementById('kiss-video');
+        if(vid) {
+            vid.play();
+        }
+
+        // Show final message and Restart button after 19 seconds
+        messageTimer = setTimeout(() => {
+            document.querySelector('.final-msg-container').style.opacity = '1';
+        }, 19000);
+    }
+
+    function restartKissing() {
+        // 1. Increment Kiss Count FIRST
+        kissCount++;
+        console.log("Kiss count incremented to:", kissCount);
+
+        // 2. CHECK FOR SURPRISE
+        // 0, 1, 2 = Normal. 3 = 4th Time -> Redirect
+        if (kissCount >= 3) {
+            window.location.href = "https://youtu.be/rxJaxagZMXk?si=xSRXe3JsjCQQ2inR"; 
+            return; // Stop here, do not replay video
+        }
+
+        // 3. Normal Replay Logic
+        document.querySelector('.final-msg-container').style.opacity = '0';
+        
+        const vid = document.getElementById('kiss-video');
+        if(vid) {
+            vid.currentTime = 0;
+            vid.play();
+        }
+
+        // 4. Wait 19 seconds again for button to reappear
+        clearTimeout(messageTimer);
+        messageTimer = setTimeout(() => {
+            document.querySelector('.final-msg-container').style.opacity = '1';
+        }, 19000);
+    }
+
+</script>
+</body>
+</html>
